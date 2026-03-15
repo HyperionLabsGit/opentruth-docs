@@ -68,3 +68,50 @@ C'est pourquoi nous fournissons toujours les sources et le raisonnement — vous
 ### Mes donnees sont-elles protegees ?
 
 Oui. OpenTruth est base en Suisse et respecte la LPD (Loi federale sur la protection des donnees) et le RGPD. Consultez notre [politique de confidentialite](https://opentruth.ch/privacy) pour plus de details.
+
+## Questions techniques
+
+### Quel modele d'IA est utilise pour la verification ?
+
+OpenTruth utilise plusieurs modeles specialises :
+- **GPT-5.2** (OpenAI) pour l'extraction des claims et la classification
+- **Llama 3.3-70B** (Groq) pour le resume, la detection de speakers et la recherche de sources
+- **mDeBERTa-v3** pour le scoring NLI (Natural Language Inference)
+- **text-embedding-3-large** (OpenAI) pour la recherche semantique
+
+### Pourquoi le score de confiance NLI est-il parfois bas ?
+
+Le modele NLI a ete entraine principalement sur des phrases courtes en anglais (XNLI). Sur des textes politiques longs en francais, la confiance est naturellement plus basse. Un score NLI de 0.60 est considere comme acceptable pour notre cas d'usage. Nous travaillons sur un fine-tuning specifique pour ameliorer ce score.
+
+### Comment fonctionne la recherche de sources ?
+
+Le systeme utilise une approche multi-sources :
+1. Recherche web via Brave Search ou SearXNG (auto-heberge)
+2. Scraping du contenu des pages trouvees
+3. Filtrage par pertinence (embeddings + similarite cosinus)
+4. Hierarchie de fiabilite : sources officielles > academiques > presse > autres
+
+### Les sources sont-elles en temps reel ?
+
+Oui. A chaque verification, le systeme effectue des recherches web en temps reel. Il n'utilise pas une base de donnees statique de faits.
+
+### Que se passe-t-il si aucune source ne confirme ni ne contredit ?
+
+Le claim recoit le verdict **H1.6 Non verifiable**. Cela ne signifie pas qu'il est faux — seulement que les preuves disponibles sont insuffisantes. Le verdict peut changer si de nouvelles sources deviennent disponibles.
+
+### OpenTruth peut-il verifier des videos en anglais ?
+
+Oui. Le pipeline supporte le francais et l'anglais. L'allemand sera ajoute prochainement (pertinent pour le contexte suisse). Le modele NLI est multilingue (26 langues).
+
+### Qu'est-ce que le graphe de connaissances ?
+
+OpenTruth construit un [graphe de connaissances](ontology.md) qui connecte les personnes, organisations, claims et sources. Cela permet de suivre l'evolution des discours dans le temps et de detecter des patterns (ex: un politicien qui repete un claim deja verifie comme faux).
+
+### Les verdicts sont-ils definitifs ?
+
+Non. Un verdict peut evoluer si :
+- De nouvelles sources deviennent disponibles
+- Un utilisateur signale une erreur (feedback beta)
+- Le contexte change (ex: une promesse se realise)
+
+Le systeme conserve l'historique des verdicts.
